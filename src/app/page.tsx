@@ -542,20 +542,10 @@ export default function Home() {
                 <div className="rounded-full border border-polar-cyan/20 bg-polar-cyan/10 px-5 py-3 text-sm text-polar-cyan">
                   {analysisPayload?.source === "live" ? "Live 분석" : "샘플 분석"} · {accountLabel}
                 </div>
-                {analysisPayload?.tagging ? (
-                  <div className="rounded-3xl border border-polar-line bg-polar-panel px-5 py-4 text-sm leading-6 text-polar-muted">
-                    태깅: {analysisPayload.tagging.mode === "llm" ? "LLM" : "규칙"} · {analysisPayload.tagging.message}
-                  </div>
-                ) : null}
-                {analysisPayload?.persistence ? (
-                  <div className="rounded-3xl border border-polar-line bg-polar-panel px-5 py-4 text-sm leading-6 text-polar-muted">
-                    저장: {analysisPayload.persistence.saved ? "Firestore 저장됨" : "미저장"} · {analysisPayload.persistence.message}
-                  </div>
-                ) : null}
                 <DirectionBalanceReport report={activeReport} />
               </aside>
 
-              <div className="grid items-start gap-4 md:grid-cols-2">
+              <div className="grid items-start gap-3 md:grid-cols-2">
                 <ScoreCard
                   title="구조 반복"
                   caption="비슷한 전개 방식의 반복 빈도"
@@ -587,8 +577,8 @@ export default function Home() {
           {activeTab === "evidence" ? (
             <div className="mx-auto max-w-7xl">
               <div className="mb-6">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-polar-lime">Evidence Cards</p>
-                <h2 className="mt-2 text-3xl font-black tracking-tight text-polar-text">창작 흐름 근거 카드</h2>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-polar-lime">Reels Analysis</p>
+                <h2 className="mt-2 text-3xl font-black tracking-tight text-polar-text">릴스 분석</h2>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
                 {activeReels.map((reel) => (
