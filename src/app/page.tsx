@@ -430,7 +430,7 @@ export default function Home() {
               disabled={analysisState === "loading"}
               className="rounded-full border border-polar-line bg-polar-panel px-6 py-2.5 text-sm font-bold text-polar-text shadow-neon transition hover:scale-[1.02]"
             >
-              {analysisState === "loading" ? "분석 중" : "샘플로 먼저 보기"}
+              {analysisState === "loading" ? "분석 중" : "데모"}
             </button>
             <div className="rounded-full border border-polar-line bg-polar-panel px-6 py-2.5 text-sm text-polar-muted">
               {analysisState === "ready" ? `${accountLabel} · 최근 ${activeReels.length}개 Reel` : "계정을 입력하면 분석을 시작합니다"}
