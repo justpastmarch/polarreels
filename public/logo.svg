@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="PolarReels logo">
+  <defs>
+    <linearGradient id="polarGradient" x1="48" y1="40" x2="208" y2="216" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7c3cff"/>
+      <stop offset="0.55" stop-color="#9d5cff"/>
+      <stop offset="1" stop-color="#6f4dff"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#ffffff"/>
+  <path d="M57 116a74 74 0 0 1 59-59" fill="none" stroke="url(#polarGradient)" stroke-width="13" stroke-linecap="round"/>
+  <path d="M140 57a74 74 0 0 1 59 59" fill="none" stroke="url(#polarGradient)" stroke-width="13" stroke-linecap="round"/>
+  <path d="M199 140a74 74 0 0 1-59 59" fill="none" stroke="url(#polarGradient)" stroke-width="13" stroke-linecap="round"/>
+  <path d="M116 199a74 74 0 0 1-59-59" fill="none" stroke="url(#polarGradient)" stroke-width="13" stroke-linecap="round"/>
+  <path d="M128 72c6 34 10 44 24 52 9 5 20 7 52 10-32 4-43 6-52 11-14 8-18 18-24 52-6-34-10-44-24-52-9-5-20-7-52-11 32-3 43-5 52-10 14-8 18-18 24-52Z" fill="none" stroke="url(#polarGradient)" stroke-width="11" stroke-linejoin="round"/>
+</svg>

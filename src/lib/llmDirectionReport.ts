@@ -1,0 +1,126 @@
+import type { DirectionInsight, ReelItem, PolarReelsAnalysis } from "@/types/reel";
+
+const getApiKey = () => (process.env.OPENAI_API_KEY ?? "").trim();
+
+export const isLlmConfigured = () => Boolean(getApiKey());
+
+const extractJson = (content: string) => {
+  const fenced = content.match(/```json\s*([\s\S]*?)\s*```/i)?.[1];
+  return JSON.parse(fenced ?? content) as DirectionInsight;
+};
+
+export type InsightResult = {
+  insight: DirectionInsight;
+  mode: "llm" | "fallback";
+};
+
+const buildFallback = (report: PolarReelsAnalysis): DirectionInsight => ({
+  summary: report.repeatedPatternSummary.slice(0, 120),
+  patterns: [
+    report.repeatedPatternSummary,
+    report.postResponseSummary,
+    report.hookSummary,
+    report.topicSummary,
+  ],
+  observations: report.reflectionQuestions.slice(0, 3),
+  reflectionPoints: report.reflectionQuestions.slice(0, 3),
+  topicIdeas: [
+    `${report.topicSummary} 이 흐름을 바탕으로 한 장면형 영상`,
+    `${report.hookSummary} 이 도입 방식을 다른 소재에 적용한 영상`,
+    `${report.postResponseSummary} 이 변화가 드러나는 비교형 영상`,
+  ],
+});
+
+export async function generateDirectionInsight(
+  reels: ReelItem[],
+  report: PolarReelsAnalysis,
+): Promise<InsightResult> {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    return { insight: buildFallback(report), mode: "fallback" };
+  }
+
+  const reelSummaries = reels.map((r) => ({
+    title: r.title,
+    caption: r.caption?.slice(0, 200),
+    views: r.views,
+    likes: r.likes,
+    comments: r.comments,
+    hookType: r.hookType,
+    structureType: r.structureType,
+    topicTags: r.topicTags,
+    toneTags: r.toneTags,
+    platformClicheLevel: r.platformClicheLevel,
+  }));
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      temperature: 0.3,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You analyze a creator's Instagram Reels data and produce a concise direction insight. Return ONLY valid JSON. Never suggest viral tactics, growth hacks, or stronger hooks.",
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            task: "Synthesize the following Reel data and analysis into creative direction insight.",
+            outputSchema: {
+              summary: "One-paragraph summary of the overall creative direction (Korean, 2-3 sentences)",
+              patterns: ["3-4 specific pattern observations based on actual data (Korean)"],
+              observations: ["2-3 observations about what the data shows, not what to change (Korean)"],
+              reflectionPoints: ["2-3 questions the creator could ask themselves (Korean, non-prescriptive)"],
+              topicIdeas: ["3 video topic ideas that extend the account's current direction without viral tactics (Korean, concrete but non-prescriptive)"],
+            },
+            analysisScores: {
+              structureRepetition: report.scores.structureRepetition,
+              postResponseSimilarity: report.scores.postResponseSimilarity,
+              hookConcentration: report.scores.hookConcentration,
+              topicDiversity: report.scores.topicDiversity,
+            },
+            analysisSummaries: {
+              repeatedPattern: report.repeatedPatternSummary,
+              postResponse: report.postResponseSummary,
+              hook: report.hookSummary,
+              topic: report.topicSummary,
+            },
+            reels: reelSummaries,
+          }),
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    return { insight: buildFallback(report), mode: "fallback" };
+  }
+
+  const completion = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const content = completion.choices?.[0]?.message?.content;
+  if (!content) {
+    return { insight: buildFallback(report), mode: "fallback" };
+  }
+
+  try {
+    const parsed = extractJson(content);
+    const insight: DirectionInsight = {
+      summary: typeof parsed.summary === "string" ? parsed.summary : buildFallback(report).summary,
+      patterns: Array.isArray(parsed.patterns) ? parsed.patterns.slice(0, 6) : buildFallback(report).patterns,
+      observations: Array.isArray(parsed.observations) ? parsed.observations.slice(0, 5) : buildFallback(report).observations,
+      reflectionPoints: Array.isArray(parsed.reflectionPoints) ? parsed.reflectionPoints.slice(0, 5) : buildFallback(report).reflectionPoints,
+      topicIdeas: Array.isArray(parsed.topicIdeas) ? parsed.topicIdeas.slice(0, 5) : buildFallback(report).topicIdeas,
+    };
+    return { insight, mode: "llm" };
+  } catch {
+    return { insight: buildFallback(report), mode: "fallback" };
+  }
+}
