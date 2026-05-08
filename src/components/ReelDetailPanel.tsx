@@ -53,11 +53,10 @@ export function ReelDetailPanel({ reel, metricSummary, onClose }: ReelDetailPane
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-4">
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
           <MetricBlock label="현재 조회수" value={latest ? formatMetric(latest.views) : formatMetric(reel.views)} />
           <MetricBlock label="현재 좋아요" value={latest ? formatMetric(latest.likes) : formatMetric(reel.likes)} />
           <MetricBlock label="현재 댓글" value={latest ? formatMetric(latest.comments) : formatMetric(reel.comments)} />
-          <MetricBlock label={<><span>신뢰도</span><span className={`ml-1.5 inline-block h-2.5 w-2.5 rounded-full ${reel.platformClicheLevel >= 50 ? "bg-green-500" : reel.platformClicheLevel >= 25 ? "bg-yellow-500" : "bg-red-500"}`} /></>} />
         </div>
 
         {/* Time range selector */}
@@ -116,6 +115,10 @@ export function ReelDetailPanel({ reel, metricSummary, onClose }: ReelDetailPane
               <p>구조: {reel.structureType}</p>
               <p>소재: {reel.topicTags.join(" · ")}</p>
               <p>톤: {reel.toneTags.join(" · ")}</p>
+              <p className="flex items-center gap-1.5">
+                <span>신뢰도</span>
+                <span className={`inline-block h-2 w-2 rounded-full ${reel.platformClicheLevel >= 50 ? "bg-green-500" : reel.platformClicheLevel >= 25 ? "bg-yellow-500" : "bg-red-500"}`} />
+              </p>
             </div>
             {reel.analysisReason ? (
               <div className="mt-5 rounded-2xl bg-polar-panel p-4 text-sm leading-6 text-polar-muted">
@@ -131,8 +134,8 @@ export function ReelDetailPanel({ reel, metricSummary, onClose }: ReelDetailPane
 
 function MetricBlock({ label, value }: { label: React.ReactNode; value?: string }) {
   return (
-    <div className="rounded-3xl border border-polar-line bg-polar-panelSoft/50 p-4">
-      <p className="flex items-center gap-1.5 text-xs text-polar-muted">{label}</p>
+    <div className="rounded-3xl border border-polar-line bg-polar-panelSoft/50 p-4 text-center">
+      <p className="flex items-center justify-center gap-1.5 text-xs text-polar-muted">{label}</p>
       <p className="mt-2 text-2xl font-black text-polar-text">{value}</p>
     </div>
   );

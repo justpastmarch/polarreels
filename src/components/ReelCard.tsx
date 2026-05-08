@@ -126,7 +126,7 @@ export function ReelCard({ reel, onSelect }: ReelCardProps) {
         <div className="mt-4 grid gap-3 text-xs text-polar-muted sm:grid-cols-3">
           <Metric label="좋아요" value={formatNumber(reel.likes)} />
           <Metric label="댓글" value={formatNumber(reel.comments)} />
-          <Metric label={<><span>신뢰도</span><span className={`ml-1.5 inline-block h-2 w-2 rounded-full ${reel.platformClicheLevel >= 50 ? "bg-green-500" : reel.platformClicheLevel >= 25 ? "bg-yellow-500" : "bg-red-500"}`} /></>} />
+          <Metric label="조회수" value={formatNumber(reel.views)} />
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2 text-xs">
@@ -134,10 +134,10 @@ export function ReelCard({ reel, onSelect }: ReelCardProps) {
           <Tag label="톤" value={reel.toneTags.map((tag) => toneLabels[tag] ?? tag).join(" · ")} />
           <Tag label="도입" value={hookLabel} />
           <Tag label="구조" value={structureLabel} />
-        </div>
-
-        <div className="mt-4 text-xs font-medium leading-5 text-polar-muted">
-          {clicheLabel}
+          <Tag
+            label="신뢰도"
+            value={<><span className={`mr-1 inline-block h-2 w-2 rounded-full ${reel.platformClicheLevel >= 50 ? "bg-green-500" : reel.platformClicheLevel >= 25 ? "bg-yellow-500" : "bg-red-500"}`} />{clicheLabel}</>}
+          />
         </div>
         <p className="mt-3 text-xs font-semibold text-polar-cyan">클릭하면 상세 지표와 변화량을 볼 수 있습니다.</p>
       </div>
@@ -147,14 +147,14 @@ export function ReelCard({ reel, onSelect }: ReelCardProps) {
 
 function Metric({ label, value }: { label: React.ReactNode; value?: string }) {
   return (
-    <div className="rounded-2xl border border-polar-line bg-polar-panel/85 p-3">
-      <p className="flex items-center gap-1.5 text-[0.7rem] font-medium text-polar-muted">{label}</p>
+    <div className="rounded-2xl border border-polar-line bg-polar-panel/85 p-3 text-center">
+      <p className="flex items-center justify-center gap-1.5 text-[0.7rem] font-medium text-polar-muted">{label}</p>
       <p className="mt-1 text-sm font-semibold text-polar-text">{value}</p>
     </div>
   );
 }
 
-function Tag({ label, value }: { label: string; value: string }) {
+function Tag({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-polar-line bg-polar-panel/80 px-3 py-1.5 text-polar-muted">
       <span className="shrink-0 font-medium text-polar-cyan">{label}</span>
