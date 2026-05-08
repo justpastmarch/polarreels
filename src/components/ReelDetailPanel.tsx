@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import type { ReelItem, ReelMetricSnapshot, ReelMetricSummary, TimeRange } from "@/types/reel";
 import { TIME_RANGE_LABELS, TIME_RANGE_OPTIONS } from "@/types/reel";
 import { formatDelta, formatMetric } from "@/lib/metricTracking";
@@ -57,7 +57,7 @@ export function ReelDetailPanel({ reel, metricSummary, onClose }: ReelDetailPane
           <MetricBlock label="현재 조회수" value={latest ? formatMetric(latest.views) : formatMetric(reel.views)} />
           <MetricBlock label="현재 좋아요" value={latest ? formatMetric(latest.likes) : formatMetric(reel.likes)} />
           <MetricBlock label="현재 댓글" value={latest ? formatMetric(latest.comments) : formatMetric(reel.comments)} />
-          <MetricBlock label="문법 신호" value={`${reel.platformClicheLevel}`} />
+          <MetricBlock label={<><span>신뢰도</span><span className={`ml-1.5 inline-block h-2.5 w-2.5 rounded-full ${reel.platformClicheLevel >= 50 ? "bg-green-500" : reel.platformClicheLevel >= 25 ? "bg-yellow-500" : "bg-red-500"}`} /></>} />
         </div>
 
         {/* Time range selector */}
@@ -129,10 +129,10 @@ export function ReelDetailPanel({ reel, metricSummary, onClose }: ReelDetailPane
   );
 }
 
-function MetricBlock({ label, value }: { label: string; value: string }) {
+function MetricBlock({ label, value }: { label: React.ReactNode; value?: string }) {
   return (
     <div className="rounded-3xl border border-polar-line bg-polar-panelSoft/50 p-4">
-      <p className="text-xs text-polar-muted">{label}</p>
+      <p className="flex items-center gap-1.5 text-xs text-polar-muted">{label}</p>
       <p className="mt-2 text-2xl font-black text-polar-text">{value}</p>
     </div>
   );

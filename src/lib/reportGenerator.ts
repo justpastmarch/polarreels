@@ -105,7 +105,7 @@ export const generatePolarReelsReport = (reels: ReelItem[]): PolarReelsAnalysis 
 
   const hookMessage =
     scores.hookConcentration >= 61
-      ? "특정 후킹 방식과 플랫폼 문법 신호가 자주 나타납니다. 더 강하게 만들라는 뜻이 아니라, 자주 기대고 있는 표현 방식을 확인하기 위한 참고점입니다."
+      ? "특정 후킹 방식의 패턴이 뚜렷하게 감지됩니다. 더 강하게 만들라는 뜻이 아니라, 자주 기대고 있는 표현 방식을 확인하기 위한 참고점입니다."
       : "후킹 방식이 한쪽으로 강하게 모인 신호는 크지 않습니다. 지금의 표현 방식이 의도한 톤과 맞는지 살펴보세요.";
 
   const topicMessage =

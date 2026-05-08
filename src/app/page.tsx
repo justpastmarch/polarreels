@@ -74,6 +74,7 @@ export default function Home() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loadingStepIndex, setLoadingStepIndex] = useState(0);
   const [realMetricSnapshots, setRealMetricSnapshots] = useState<ReelMetricSnapshot[]>([]);
+  const [reelSort, setReelSort] = useState<"date" | "views" | "likes">("date");
   const analysisInFlightRef = useRef(false);
   const demoReport = useMemo(() => generatePolarReelsReport(mockReels), []);
 
@@ -576,14 +577,38 @@ export default function Home() {
 
           {activeTab === "evidence" ? (
             <div className="mx-auto max-w-7xl">
-              <div className="mb-6">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-polar-lime">Reels Analysis</p>
-                <h2 className="mt-2 text-3xl font-black tracking-tight text-polar-text">릴스 분석</h2>
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-polar-lime">Reels Analysis</p>
+                  <h2 className="mt-2 text-3xl font-black tracking-tight text-polar-text">릴스 분석</h2>
+                </div>
+                <div className="flex gap-1.5">
+                  {(["date", "views", "likes"] as const).map((sort) => (
+                    <button
+                      key={sort}
+                      type="button"
+                      onClick={() => setReelSort(sort)}
+                      className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
+                        reelSort === sort
+                          ? "bg-polar-cyan text-white"
+                          : "border border-polar-line bg-polar-panelSoft/40 text-polar-muted hover:bg-polar-panelSoft"
+                      }`}
+                    >
+                      {sort === "date" ? "날짜순" : sort === "views" ? "조회수순" : "좋아요순"}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
-                {activeReels.map((reel) => (
-                  <ReelCard key={reel.id} reel={reel} onSelect={setSelectedReel} />
-                ))}
+                {[...activeReels]
+                  .sort((a, b) => {
+                    if (reelSort === "views") return b.views - a.views;
+                    if (reelSort === "likes") return b.likes - a.likes;
+                    return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime();
+                  })
+                  .map((reel) => (
+                    <ReelCard key={reel.id} reel={reel} onSelect={setSelectedReel} />
+                  ))}
               </div>
             </div>
           ) : null}

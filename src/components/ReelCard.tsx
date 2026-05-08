@@ -1,3 +1,4 @@
+import React from "react";
 import type { ReelItem } from "@/types/reel";
 
 type ReelCardProps = {
@@ -53,16 +54,16 @@ const toneLabels: Record<string, string> = {
 };
 
 const getClicheSignalLabel = (level: number) => {
-  if (level >= 75) return "강한 플랫폼 문법 신호";
-  if (level >= 50) return "뚜렷한 플랫폼 문법 신호";
-  if (level >= 25) return "일부 플랫폼 문법 신호";
-  return "낮은 플랫폼 문법 신호";
+  if (level >= 75) return "분석 신뢰도 높음";
+  if (level >= 50) return "분석 신뢰도 보통";
+  if (level >= 25) return "분석 신뢰도 낮음";
+  return "분석 신뢰도 매우 낮음";
 };
 
 const getRoleLabel = (reel: ReelItem) => {
   if (reel.views >= 18000) return "고반응 기준점";
   if (reel.topicTags.includes("creator_reflection")) return "기준 회복 신호";
-  if (reel.platformClicheLevel >= 60) return "플랫폼 문법 반복 신호";
+  if (reel.platformClicheLevel >= 60) return "분석 신뢰도 높음";
   if (reel.hookType === "quiet_observation") return "고유 관찰 신호";
   return "흐름 확인 카드";
 };
@@ -75,7 +76,7 @@ const getInsightText = (reel: ReelItem) => {
     return "창작 회고 소재 — 반응과 무관하게 유지하려는 방향성을 보여줍니다.";
   }
   if (reel.platformClicheLevel >= 60) {
-    return "플랫폼 문법 반복 구간 — 특정 도입 방식이 집중되는 패턴이 감지됩니다.";
+    return "분석 신뢰도 높음 — 명확한 패턴이 감지되어 분석 결과의 신뢰도가 높습니다.";
   }
   if (reel.hookType === "quiet_observation") {
     return "관찰형 도입 — 초기 창작 방식의 흔적을 확인하는 단서입니다.";
@@ -125,7 +126,7 @@ export function ReelCard({ reel, onSelect }: ReelCardProps) {
         <div className="mt-4 grid gap-3 text-xs text-polar-muted sm:grid-cols-3">
           <Metric label="좋아요" value={formatNumber(reel.likes)} />
           <Metric label="댓글" value={formatNumber(reel.comments)} />
-          <Metric label="문법 신호" value={`${reel.platformClicheLevel}`} />
+          <Metric label={<><span>신뢰도</span><span className={`ml-1.5 inline-block h-2 w-2 rounded-full ${reel.platformClicheLevel >= 50 ? "bg-green-500" : reel.platformClicheLevel >= 25 ? "bg-yellow-500" : "bg-red-500"}`} /></>} />
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2 text-xs">
@@ -144,10 +145,10 @@ export function ReelCard({ reel, onSelect }: ReelCardProps) {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value }: { label: React.ReactNode; value?: string }) {
   return (
     <div className="rounded-2xl border border-polar-line bg-polar-panel/85 p-3">
-      <p className="text-[0.7rem] font-medium text-polar-muted">{label}</p>
+      <p className="flex items-center gap-1.5 text-[0.7rem] font-medium text-polar-muted">{label}</p>
       <p className="mt-1 text-sm font-semibold text-polar-text">{value}</p>
     </div>
   );
