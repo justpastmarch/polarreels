@@ -39,7 +39,7 @@ const loadingSteps = [
 
 const tabs: { id: TabId; label: string }[] = [
   { id: "overview", label: "요약" },
-  { id: "evidence", label: "근거" },
+  { id: "evidence", label: "분석" },
   { id: "reflection", label: "방향" },
   { id: "insight", label: "인사이트" },
 ];
