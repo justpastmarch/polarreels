@@ -56,6 +56,39 @@ const formatLastTrackedAt = (value: string) => {
   }).format(date);
 };
 
+const buildContextualTips = (report: PolarReelsAnalysis): string[] => {
+  const { scores } = report;
+  const tips: string[] = [];
+
+  // 구조 반복도가 높으면 → 형식 변화를 고려한 선택
+  if (scores.structureRepetition >= 60) {
+    tips.push(`현재 형식 반복도(${scores.structureRepetition}점)가 감지됩니다. 후보 중 평소와 다른 구조로 접근할 수 있는 주제를 골라보면 패턴에 균형을 줄 수 있습니다.`);
+  } else {
+    tips.push(`형식 반복도(${scores.structureRepetition}점)가 높지 않아 다양한 접근이 가능한 구간입니다. 기존 흐름에서 한 걸음 더 나가볼 주제를 선택해보세요.`);
+  }
+
+  // 후킹 의존도가 높으면 → 도입 방식 다양화
+  if (scores.hookConcentration >= 50) {
+    tips.push(`후킹 의존도(${scores.hookConcentration}점)가 한쪽으로 쏠려 있습니다. 후보 중 지금과 다른 도입 방식이 어울리는 주제가 있다면 우선 고려해보세요.`);
+  } else {
+    tips.push(`후킹 의존도(${scores.hookConcentration}점)가 낮아 도입 방식을 다양하게 시도할 수 있는 구간입니다. 후보별로 가장 자연스러운 도입 방식을 상상해보세요.`);
+  }
+
+  // 소재 다양성이 낮으면 → 새 소재 시도, 높으면 → 집중할 소재 선택
+  if (scores.topicDiversity <= 40) {
+    tips.push(`소재 다양성(${scores.topicDiversity}점)이 좁혀져 있습니다. 후보 중 최근에 시도하지 않은 소재가 있다면, 범위를 넓히는 계기로 삼아보세요.`);
+  } else if (scores.topicDiversity >= 70) {
+    tips.push(`소재 범위(${scores.topicDiversity}점)가 넓게 분포되어 있습니다. 여러 방향 중 지금 가장 집중하고 싶은 소재를 하나 골라 깊이를 더해보는 것도 방법입니다.`);
+  }
+
+  // 고반응 추종도가 높으면 → 복제가 아닌 변주
+  if (scores.postResponseSimilarity >= 55) {
+    tips.push(`고반응 이후 유사한 흐름(${scores.postResponseSimilarity}점)이 이어지고 있습니다. 다음 영상은 반응을 복제하기보다, 같은 결을 다른 맥락에 옮기는 변주를 시도해보세요.`);
+  }
+
+  return tips.slice(0, 3);
+};
+
 export default function Home() {
   const [analysisState, setAnalysisState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [accountInput, setAccountInput] = useState("");
@@ -286,7 +319,7 @@ export default function Home() {
   }, [analysisPayload]);
 
   return (
-    <main className="polar-grid min-h-screen px-5 py-5 md:px-8 lg:px-10">
+    <main className="polar-grid flex min-h-screen flex-col px-5 py-5 md:px-8 lg:px-10">
       {/* Top Navigation */}
       <nav className="sticky top-4 z-20 mx-auto mb-6 grid max-w-7xl gap-3 rounded-[1.5rem] border border-polar-line bg-polar-panel/90 px-4 py-3 shadow-neon backdrop-blur md:grid-cols-[1fr_auto_1fr] md:items-center">
         <div className="flex items-center gap-3">
@@ -346,9 +379,9 @@ export default function Home() {
       </nav>
 
       {/* Hero Section — 항상 보임 */}
-      <section className="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="glass-card rounded-[2rem] p-5 md:p-6">
-          <h1 className="text-3xl font-bold tracking-[-0.05em] text-polar-text md:text-5xl">
+      <section className={`mx-auto grid max-w-7xl gap-4 ${analysisState === "idle" ? "flex-1 content-center justify-items-center" : "lg:grid-cols-[1.15fr_0.85fr]"}`}>
+        <div className={`glass-card rounded-[2rem] p-5 md:p-6 ${analysisState === "idle" ? "w-full max-w-2xl" : ""}`}>
+          <h1 className={`text-3xl font-bold tracking-[-0.05em] text-polar-text md:text-5xl ${analysisState === "idle" ? "text-center" : ""}`}>
             당신의 창작이 길을 잃지 않도록, PolarReels
           </h1>
           <div className="mt-5 grid max-w-3xl gap-3 rounded-[1.5rem] border border-polar-line bg-polar-panelSoft/60 p-2.5 sm:grid-cols-[1fr_auto]">
@@ -405,6 +438,7 @@ export default function Home() {
           </div>
         </div>
 
+        {analysisState !== "idle" ? (
         <aside className="glass-card rounded-[2rem] p-5 md:p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -467,6 +501,7 @@ export default function Home() {
             )}
           </div>
         </aside>
+        ) : null}
       </section>
 
       {/* 로딩 / 에러 / 빈 상태 */}
@@ -651,9 +686,9 @@ export default function Home() {
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-polar-coral">How to Use</p>
                     <h3 className="mt-2 text-xl font-bold tracking-tight text-polar-text">주제 선택 기준</h3>
                     <div className="mt-5 space-y-3 text-sm leading-7 text-polar-text/80">
-                      <p className="rounded-2xl border border-polar-line bg-polar-panel/80 p-4">1. 바로 촬영 가능한 장면이 떠오르는 후보를 먼저 고릅니다.</p>
-                      <p className="rounded-2xl border border-polar-line bg-polar-panel/80 p-4">2. 기존 반응을 복제하기보다, 같은 결을 다른 상황에 옮길 수 있는지 봅니다.</p>
-                      <p className="rounded-2xl border border-polar-line bg-polar-panel/80 p-4">3. 업로드 후에는 조회수보다 소재·도입·톤이 계정 흐름과 맞았는지 확인합니다.</p>
+                      {buildContextualTips(activeReport).map((tip, i) => (
+                        <p key={i} className="rounded-2xl border border-polar-line bg-polar-panel/80 p-4">{i + 1}. {tip}</p>
+                      ))}
                     </div>
                   </div>
                 </div>
