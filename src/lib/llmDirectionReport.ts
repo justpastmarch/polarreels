@@ -66,7 +66,7 @@ export async function generateDirectionInsight(
         {
           role: "system",
           content:
-            "You analyze a creator's Instagram Reels data and produce a concise direction insight. Return ONLY valid JSON. Never suggest viral tactics, growth hacks, or stronger hooks.",
+            "You analyze a creator's Instagram Reels data and produce a concise direction insight. Return ONLY valid JSON. Never suggest viral tactics, growth hacks, or stronger hooks. All output must be written in Korean.",
         },
         {
           role: "user",
