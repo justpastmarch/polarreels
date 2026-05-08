@@ -10,6 +10,7 @@ const RANGE_MS: Record<TimeRange, number> = {
   "1d": 1 * MS_DAY,
   "7d": 7 * MS_DAY,
   "30d": 30 * MS_DAY,
+  "all": 100 * 365 * MS_DAY, // way beyond any snapshot range → picks first snapshot
 };
 
 const byCapturedAt = (left: ReelMetricSnapshot, right: ReelMetricSnapshot) =>

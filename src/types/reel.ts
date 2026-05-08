@@ -104,7 +104,7 @@ export type DirectionInsight = {
   patterns: string[];
   observations: string[];
   reflectionPoints: string[];
-  topicIdeas: string[];
+  topicIdeas: { title: string; reason: string }[];
 };
 
 export type QuickTake = {
@@ -144,7 +144,7 @@ export type ReelMetricDelta = {
   shares?: number;
 };
 
-export type TimeRange = "1h" | "6h" | "12h" | "1d" | "7d" | "30d";
+export type TimeRange = "1h" | "6h" | "12h" | "1d" | "7d" | "30d" | "all";
 
 export const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   "1h": "1시간",
@@ -153,9 +153,10 @@ export const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   "1d": "1일",
   "7d": "7일",
   "30d": "30일",
+  "all": "전체",
 };
 
-export const TIME_RANGE_OPTIONS: TimeRange[] = ["1h", "6h", "12h", "1d", "7d", "30d"];
+export const TIME_RANGE_OPTIONS: TimeRange[] = ["1h", "6h", "12h", "1d", "7d", "30d", "all"];
 
 export type ReelMetricSummary = {
   reelId: string;

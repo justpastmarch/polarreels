@@ -198,3 +198,45 @@ export const removeFavoriteAccountFromFirestore = async (userId: string, account
 
   await db.collection("users").doc(userDocId).collection("favoriteAccounts").doc(creatorDocId).delete();
 };
+
+/**
+ * Fetch all accumulated metric snapshots for every reel of a given account.
+ * Returns an empty array if Firestore is not configured or nothing is found.
+ */
+export const getMetricSnapshotsForAccount = async (accountLabel: string): Promise<ReelMetricSnapshot[]> => {
+  if (!isFirebaseConfigured()) return [];
+
+  const db = getFirebaseDb();
+  if (!db) return [];
+
+  const creatorId = sanitizeDocId(accountLabel.replace(/^@/, ""));
+  const creatorRef = db.collection("creators").doc(creatorId);
+
+  try {
+    const reelsSnapshot = await creatorRef.collection("reels").get();
+    if (reelsSnapshot.empty) return [];
+
+    const snapshots: ReelMetricSnapshot[] = [];
+    const batchPromises: Promise<void>[] = [];
+
+    reelsSnapshot.forEach((reelDoc) => {
+      const promise = reelDoc.ref.collection("metricSnapshots")
+        .orderBy("capturedAt", "asc")
+        .get()
+        .then((snapshotsSnapshot) => {
+          snapshotsSnapshot.forEach((snapDoc) => {
+            const data = snapDoc.data() as ReelMetricSnapshot;
+            if (data.reelId && data.capturedAt) {
+              snapshots.push(data);
+            }
+          });
+        });
+      batchPromises.push(promise);
+    });
+
+    await Promise.all(batchPromises);
+    return snapshots;
+  } catch {
+    return [];
+  }
+};

@@ -25,9 +25,9 @@ const buildFallback = (report: PolarReelsAnalysis): DirectionInsight => ({
   observations: report.reflectionQuestions.slice(0, 3),
   reflectionPoints: report.reflectionQuestions.slice(0, 3),
   topicIdeas: [
-    `${report.topicSummary} 이 흐름을 바탕으로 한 장면형 영상`,
-    `${report.hookSummary} 이 도입 방식을 다른 소재에 적용한 영상`,
-    `${report.postResponseSummary} 이 변화가 드러나는 비교형 영상`,
+    { title: `${report.topicSummary} 이 흐름을 바탕으로 한 장면형 영상`, reason: `최근 소재 분포(${report.scores.topicDiversity}점)를 고려할 때, 현재 범위 안에서 깊이를 더할 수 있는 소재입니다.` },
+    { title: `${report.hookSummary} 이 도입 방식을 다른 소재에 적용한 영상`, reason: `후킹 집중도(${report.scores.hookConcentration}점)가 한쪽으로 쏠리지 않았다면, 현재 방식의 변주를 시도해볼 수 있습니다.` },
+    { title: `${report.postResponseSummary} 이 변화가 드러나는 비교형 영상`, reason: `고반응 이후 패턴 유사도(${report.scores.postResponseSimilarity}점)가 높다면, 반응 형식보다 소재 변화에 집중해볼 시점입니다.` },
   ],
 });
 
@@ -77,7 +77,12 @@ export async function generateDirectionInsight(
               patterns: ["3-4 specific pattern observations based on actual data (Korean)"],
               observations: ["2-3 observations about what the data shows, not what to change (Korean)"],
               reflectionPoints: ["2-3 questions the creator could ask themselves (Korean, non-prescriptive)"],
-              topicIdeas: ["3 video topic ideas that extend the account's current direction without viral tactics (Korean, concrete but non-prescriptive)"],
+              topicIdeas: [
+                {
+                  title: "topic title (Korean, concrete, 5-8 words)",
+                  reason: "why this topic fits this account's recent flow, referencing specific patterns or scores from the data (Korean, 2-3 sentences)",
+                },
+              ],
             },
             analysisScores: {
               structureRepetition: report.scores.structureRepetition,

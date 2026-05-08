@@ -10,7 +10,7 @@ import { mockReels } from "@/data/mockReels";
 import { mockMetricSnapshots } from "@/data/mockMetricSnapshots";
 import { getMetricSummary } from "@/lib/metricTracking";
 import { generatePolarReelsReport } from "@/lib/reportGenerator";
-import type { AnalysisPayload, DirectionInsight, PolarReelsAnalysis, PolarUser, ReelItem, TrackedAccount } from "@/types/reel";
+import type { AnalysisPayload, DirectionInsight, PolarReelsAnalysis, PolarUser, ReelItem, ReelMetricSnapshot, TrackedAccount } from "@/types/reel";
 
 type TabId = "overview" | "evidence" | "reflection" | "insight";
 
@@ -71,7 +71,9 @@ export default function Home() {
   const [loginInput, setLoginInput] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [removingAccount, setRemovingAccount] = useState<string | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [loadingStepIndex, setLoadingStepIndex] = useState(0);
+  const [realMetricSnapshots, setRealMetricSnapshots] = useState<ReelMetricSnapshot[]>([]);
   const analysisInFlightRef = useRef(false);
   const demoReport = useMemo(() => generatePolarReelsReport(mockReels), []);
 
@@ -136,8 +138,6 @@ export default function Home() {
       setAnalysisState("ready");
       if (currentUser) {
         await saveFavoriteAccount(currentUser.id, payload.accountLabel ?? accountToAnalyze);
-      } else {
-        fetchTrackedAccounts();
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Instagram 분석을 완료하지 못했습니다.");
@@ -204,6 +204,7 @@ export default function Home() {
         setCurrentUser(data.user);
         window.localStorage.setItem("polarreels-user", JSON.stringify(data.user));
         fetchTrackedAccounts(data.user.id);
+        setShowLoginModal(false);
       }
     } finally {
       setLoginLoading(false);
@@ -252,8 +253,6 @@ export default function Home() {
         window.localStorage.removeItem("polarreels-user");
       }
     }
-
-    fetchTrackedAccounts();
   }, [fetchTrackedAccounts]);
 
   useEffect(() => {
@@ -266,6 +265,24 @@ export default function Home() {
 
     return () => window.clearInterval(timer);
   }, [analysisState]);
+
+  // Fetch accumulated metric snapshots from Firestore for live accounts
+  useEffect(() => {
+    if (analysisPayload?.source !== "live" || !analysisPayload.accountLabel) {
+      setRealMetricSnapshots([]);
+      return;
+    }
+
+    const account = analysisPayload.accountLabel.replace(/^@/, "");
+    fetch(`/api/metric-snapshots?account=${encodeURIComponent(account)}`)
+      .then((res) => res.json() as Promise<{ snapshots?: ReelMetricSnapshot[] }>)
+      .then((data) => {
+        if (data.snapshots) setRealMetricSnapshots(data.snapshots);
+      })
+      .catch(() => {
+        // silently degrade — no accumulated snapshots
+      });
+  }, [analysisPayload]);
 
   return (
     <main className="polar-grid min-h-screen px-5 py-5 md:px-8 lg:px-10">
@@ -308,7 +325,7 @@ export default function Home() {
                   setCurrentUser(null);
                   setLoginInput("");
                   window.localStorage.removeItem("polarreels-user");
-                  fetchTrackedAccounts();
+                  setTrackedAccounts([]);
                 }}
                 className="text-xs font-semibold text-polar-muted transition hover:text-polar-coral"
               >
@@ -316,23 +333,13 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <div className="grid w-full max-w-sm gap-2 sm:grid-cols-[1fr_auto]">
-              <input
-                value={loginInput}
-                onChange={(event) => setLoginInput(event.target.value)}
-                placeholder="이름 또는 이메일"
-                className="rounded-full border border-polar-line bg-polar-panel px-4 py-2 text-sm text-polar-text outline-none placeholder:text-polar-muted focus:border-polar-cyan"
-                aria-label="로그인 이름"
-              />
-              <button
-                type="button"
-                onClick={login}
-                disabled={loginLoading || loginInput.trim().length === 0}
-                className="rounded-full bg-polar-text px-4 py-2 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                로그인
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowLoginModal(true)}
+              className="rounded-full bg-polar-text px-5 py-2 text-sm font-bold text-white transition hover:opacity-80"
+            >
+              로그인
+            </button>
           )}
         </div>
       </nav>
@@ -379,7 +386,7 @@ export default function Home() {
               disabled={analysisState === "loading" || accountInput.trim().length === 0}
               className="rounded-full bg-polar-text px-6 py-2.5 text-sm font-bold text-white shadow-neon transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              창작 방향 분석
+                분석
             </button>
           </div>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -610,13 +617,15 @@ export default function Home() {
                     <h3 className="mt-2 text-xl font-bold tracking-tight text-polar-text">영상 주제 후보</h3>
                     <div className="mt-5 grid gap-3">
                       {directionInsight.topicIdeas.slice(0, 3).map((topic, index) => (
-                        <div key={index} className="flex gap-4 rounded-2xl border border-polar-line bg-polar-panelSoft/50 p-5 text-sm leading-7 text-polar-text/85">
-                          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-polar-violet/10 text-xs font-bold text-polar-violet">
-                            {index + 1}
-                          </span>
-                          <div>
-                            <p className="font-semibold text-polar-text">후보 {index + 1}</p>
-                            <p className="mt-1 text-polar-text/80">{topic}</p>
+                        <div key={index} className="rounded-2xl border border-polar-line bg-polar-panelSoft/50 p-5">
+                          <div className="flex items-start gap-3">
+                            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-polar-violet/10 text-xs font-bold text-polar-violet">
+                              {index + 1}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-bold text-polar-text">{topic.title}</p>
+                              <p className="mt-2 text-xs leading-6 text-polar-muted">{topic.reason}</p>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -709,9 +718,56 @@ export default function Home() {
       {selectedReel ? (
         <ReelDetailPanel
           reel={selectedReel}
-          metricSummary={getMetricSummary(selectedReel, analysisPayload?.source === "demo" ? mockMetricSnapshots : [])}
+          metricSummary={getMetricSummary(selectedReel, (!analysisPayload || analysisPayload.source === "demo") ? mockMetricSnapshots : realMetricSnapshots)}
           onClose={() => setSelectedReel(null)}
         />
+      ) : null}
+
+      {/* 로그인 모달 */}
+      {showLoginModal ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setShowLoginModal(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-[2rem] border border-polar-line bg-polar-panel p-6 shadow-neon"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-polar-text">로그인</h2>
+              <button
+                type="button"
+                onClick={() => setShowLoginModal(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-lg text-polar-muted transition hover:bg-polar-panelSoft hover:text-polar-text"
+              >
+                ×
+              </button>
+            </div>
+            <p className="mt-2 text-sm leading-5 text-polar-muted">
+              사용자명을 입력하면 간단히 로그인할 수 있습니다. 비밀번호는 필요하지 않습니다.
+            </p>
+            <div className="mt-5 flex gap-2">
+              <input
+                value={loginInput}
+                onChange={(event) => setLoginInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && loginInput.trim().length > 0 && !loginLoading) login();
+                }}
+                placeholder="사용자명"
+                className="min-w-0 flex-1 rounded-full border border-polar-line bg-polar-panelSoft px-4 py-2.5 text-sm text-polar-text outline-none placeholder:text-polar-muted focus:border-polar-cyan"
+                aria-label="로그인 사용자명"
+              />
+              <button
+                type="button"
+                onClick={login}
+                disabled={loginLoading || loginInput.trim().length === 0}
+                className="rounded-full bg-polar-text px-5 py-2.5 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loginLoading ? "로딩 중..." : "로그인"}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </main>
   );
